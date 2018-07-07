@@ -13,21 +13,23 @@ USER root
 
 # Make sure bash, bc and jq is available for easier wrapper implementation
 RUN URL=https://github.com/ethereum/cpp-ethereum/releases/download/v1.4.0.dev1/cpp-ethereum-1.4.0.dev1-linux.tar.gz && curl -L $URL | tar xz -C /usr/local \
-    && curl https://raw.githubusercontent.com/ethereum/cpp-ethereum/develop/scripts/jsonrpcproxy.py > /jsonrpcproxy.py
+    && curl https://raw.githubusercontent.com/ethereum/cpp-ethereum/develop/scripts/jsonrpcproxy.py > /usr/local/bin/jsonrpcproxy.py
 
 RUN git clone https://github.com/ewasm/hera && \
 		cd hera && \
 		git submodule update --init --recursive && \
 		cmake -DBUILD_SHARED_LIBS=ON . && \
 		make -j8 && \
-    cp src/libhera.so /
+    cp src/libhera.so /usr/local/lib/libhera.so
 
-ADD ewasm-testnet-cpp-config.json /ewasm-testnet-cpp-config.json
+RUN curl http://ftp.us.debian.org/debian/pool/main/n/netcat-openbsd/netcat-openbsd_1.105-7_amd64.deb > netcat-openbsd_1.105-7_amd64.deb
+RUN dpkg -i netcat-openbsd_1.105-7_amd64.deb
 
-ADD cpp-eth.sh /cpp-eth.sh
-ADD enodes /enodes
+RUN mkdir -p /opt/ewasm-testnet
+WORKDIR /opt/ewasm-testnet
 
-# Export the usual networking ports to allow outside access to the node
+ADD cpp-eth.sh cpp-eth.sh
+
 EXPOSE 8545 30303
 
-ENTRYPOINT ["/cpp-eth.sh"]
+ENTRYPOINT ["./cpp-eth.sh"]
