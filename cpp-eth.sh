@@ -1,59 +1,146 @@
-#! /bin/bash
+#!/usr/bin/env bash
 
+PWD="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-PEER_1="enode://a604159cad54b3136812fd19c1656a035f6070e27fc3ab433bc04b61fb2c1a27f6563a53b80c88e2453b6b059bd7658e59ebbbb60de8d09ae9b78fce8e84887b@miner1:30303"
-PEER_2="enode://eb085e5795760a7aa83026b56c433ba3b027738eed2cbf4ebad6ccf0ca3ccd78369f4ffa77b59f763e31a41245980d246c2e0acb6362785a9ec21824385cf87b@miner2:30303"
-PEER_3="enode://37ffd11745b7243a0e835cae086be8e20b4ace08d5ce38d4d65ac9149e4fbe96a1a00c2df3090a9a858d6a1bf389cb5f7d012f3435ff4b8253ad22414c9da153@miner3:30303"
-
-PEER_SET=""
-
-if [ "$NODE_NUM" == "1" ] 
-then
-  PEER_SET="$PEER_2 $PEER_3"
-  cp /enodes/a604159cad54b3136812fd19c1656a035f6070e27fc3ab433bc04b61fb2c1a27f6563a53b80c88e2453b6b059bd7658e59ebbbb60de8d09ae9b78fce8e84887b/* /tmp/ewasm-node/4201/
-  echo "foobar1"
+if [[ -z "${BASE_PATH}" ]]; then
+  BASE_PATH=$PWD
 fi
 
-if [ "$NODE_NUM" == "2" ] 
-then
-  PEER_SET="$PEER_1 $PEER_3"
-  cp /enodes/eb085e5795760a7aa83026b56c433ba3b027738eed2cbf4ebad6ccf0ca3ccd78369f4ffa77b59f763e31a41245980d246c2e0acb6362785a9ec21824385cf87b/* /tmp/ewasm-node/4201/
-  echo "foobar2"
+if [[ -z "${CHAIN}" ]]; then
+  CHAIN=master
 fi
 
-if [ "$NODE_NUM" == "3" ] 
-then
-  PEER_SET="$PEER_1 $PEER_2"
-  cp /enodes/37ffd11745b7243a0e835cae086be8e20b4ace08d5ce38d4d65ac9149e4fbe96a1a00c2df3090a9a858d6a1bf389cb5f7d012f3435ff4b8253ad22414c9da153/* /tmp/ewasm-node/4201/
-  echo "foobar3"
+if [[ -z "${CHAIN_SPEC}" ]]; then
+  CHAIN_SPEC=${BASE_PATH}/ewasm-spec.json
+
+  if [ ! -f "${CHAIN_SPEC}" ] || [ ! -s "${CHAIN_SPEC}" ]; then
+    if [[ -z "${CHAIN_SPEC_URL}" ]]; then
+      CHAIN_SPEC_URL="https://raw.githubusercontent.com/ewasm/testnet/${CHAIN}/ewasm-testnet-cpp-config.json"
+    fi
+    curl "${CHAIN_SPEC_URL}" > "${CHAIN_SPEC}" 2> /dev/null
+  fi
 fi
 
-echo $PEER_SET
+if [[ -z "${PEER_SET}" ]]; then
+  if [ ! -f enodes.txt ] || [ ! -s enodes.txt ]; then
+    if [[ ! -z "${BOOTNODES_URL}" ]]; then
+      curl "${BOOTNODES_URL}" > enodes.txt 2> /dev/null
+      PEER_SET=$(cat enodes.txt | sed 's/,/ /g')
+    fi
+  fi
+fi
 
-echo "running eth..."
+if [[ -z "${DB_PATH}" ]]; then
+  DB_PATH=${BASE_PATH}/${CHAIN}
+fi
 
+if [[ -z "${EVMC_FALLBACK}" ]]; then
+  EVMC_FALLBACK=true
+fi
 
-ethCmd=(aleth)
+if [[ -z "${ASK}" ]]; then
+  ASK=0
+fi
 
-ethCmd+=(--vm /libhera.so)
-ethCmd+=(--evmc fallback=true)
-ethCmd+=(--db-path /tmp/ewasm-node/4201)
-ethCmd+=(--no-bootstrap)
-ethCmd+=(--mining on)
-ethCmd+=(--mining-threads 1)
-ethCmd+=(--ask 1)
-ethCmd+=(--address 0x031159dF845ADe415202e6DA299223cb640B9DB0)
-ethCmd+=(--config /ewasm-testnet-cpp-config.json)
-ethCmd+=(--listen 1234)
-ethCmd+=(${PEER_SET:+ --peerset "${PEER_SET}"}) # only use --peerset when $PEER_SET not empty
+if [[ -z "${BID}" ]]; then
+  BID=20000000000
+fi
 
-echo ${ethCmd[@]}
+if [[ -z "${COINBASE}" ]]; then
+  COINBASE=0x0000000000000000000000000000000000000000
+fi
 
-"${ethCmd[@]}" &
-  
+if [[ -z "${IPC_PATH}" ]]; then
+  IPC_PATH=${DB_PATH}/geth.ipc
+fi
 
-#  --peerset "required:61e5475e6870260af84bcf61c02b2127a5c84560401452ae9c99b9ff4f0f343d65c9e26209ec32d42028b365addba27824669eb70c73f69568964f77433afbbe@127.0.0.1:1234" \
+if [[ -z "${JSON_RPC_PORT}" ]]; then
+  JSON_RPC_PORT=8545
+fi
 
+if [[ -z "${JSON_RPC_PROXY_PY}" ]]; then
+  JSON_RPC_PROXY_PY=/usr/local/bin/jsonrpcproxy.py
+fi
 
-echo "running jsonrpcproxy..."
-python3 /jsonrpcproxy.py /tmp/ewasm-node/4201/geth.ipc http://0.0.0.0:8545
+if [[ -z "${JSON_RPC_PROXY_URL}" ]]; then
+  JSON_RPC_PROXY_URL=http://0.0.0.0:${JSON_RPC_PORT}
+fi
+
+if [[ -z "${LISTEN_IP}" ]]; then
+  LISTEN_IP=0.0.0.0
+fi
+
+if [[ -z "${LISTEN_PORT}" ]]; then
+  LISTEN_PORT=30303
+fi
+
+if [[ -z "${LOG_VERBOSITY}" ]]; then
+  LOG_VERBOSITY=2
+fi
+
+if [[ -z "${LOG_PATH}" ]]; then
+  LOG_PATH="${BASE_PATH}/cpp-ethereum.log"
+fi
+
+if [[ -z "${MINING}" ]]; then
+  MINING=on
+fi
+
+if [[ -z "${MINING_THREADS}" ]]; then
+  MINING_THREADS=1
+fi
+
+if [[ -z "${NETWORK_ID}" ]]; then
+  NETWORK_ID=66
+fi
+
+if [[ -z "${MODE}" ]]; then
+  MODE=full
+fi
+
+if [[ -z "${PORT}" ]]; then
+  PORT=30303
+fi
+
+if [[ -z "${PUBLIC_IP}" ]]; then
+  PUBLIC_IP=$(curl -s https://api.ipify.org 2> /dev/null)
+fi
+
+if [[ -z "${VM}" ]]; then
+  VM=/usr/local/lib/libhera.so
+fi
+
+CPP_ETH_BIN=$(which aleth)
+if [ $? -eq 0 ]; then
+  echo "ewasm testnet node starting in ${BASE_PATH}; cpp-ethereum bin: ${CPP_ETH_BIN}"
+fi
+
+$CPP_ETH_BIN --address ${COINBASE} \
+             --ask ${ASK} \
+             --bid ${BID} \
+             --config ${CHAIN_SPEC} \
+             --db-path ${DB_PATH} \
+             --evmc fallback=${EVMC_FALLBACK} \
+             --listen-ip ${LISTEN_IP} \
+             --listen ${LISTEN_PORT} \
+             --log-verbosity ${LOG_VERBOSITY} \
+             --mining ${MINING} \
+             --mining-threads ${MINING_THREADS} \
+             --mode ${MODE} \
+             --network-id ${NETWORK_ID} \
+             --no-bootstrap \
+             ${PEER_SET:+ --peerset "${PEER_SET}"} \
+             --port ${PORT} \
+             --public-ip ${PUBLIC_IP} \
+             --vm ${VM} &
+
+while [[ -z "${nodeInfo}" ]]; do
+  resp=$(echo '{"jsonrpc": "2.0", "method": "admin_nodeInfo", "params": [], "id": null}' | nc -U "${IPC_PATH}" 2> /dev/null)
+  if [ $? -eq 0 ]; then
+    nodeInfo=$resp
+  fi
+done
+echo "${nodeInfo}"
+
+echo "Running ${JSON_RPC_PROXY_PY}; IPC path: ${IPC_PATH}; JSON-RPC proxy: ${JSON_RPC_PROXY_URL}"
+python3 "${JSON_RPC_PROXY_PY}" "${IPC_PATH}" "${JSON_RPC_PROXY_URL}"
