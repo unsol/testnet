@@ -137,7 +137,7 @@ $CPP_ETH_BIN --address ${COINBASE} \
 while [[ -z "${nodeInfo}" ]]; do
   resp=$(echo '{"jsonrpc": "2.0", "method": "admin_nodeInfo", "params": [], "id": null}' | nc -U "${IPC_PATH}" 2> /dev/null)
   if [ $? -eq 0 ]; then
-    nodeInfo=$resp
+    nodeInfo=$(echo "${resp}" | sed s/\:0\"/\:${LISTEN_PORT}\"/g)
   fi
 done
 echo "${nodeInfo}"
