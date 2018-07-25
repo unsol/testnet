@@ -1,14 +1,5 @@
 # ewasm testnet coordination / documentation repo
 
-## cpp-ethereum
-
-To build cpp-ethereum with the recent eWASM changes use [ewasm](https://github.com/ethereum/cpp-ethereum/tree/ewasm).
-
-The `eth`, `ethvm` and `testeth` contain options to run them with [Hera eWASM VM](https://github.com/ewasm/hera):
-
-- `--vm hera` enables Hera only,
-- `--evmc fallback=true` enables fallback to EVM 1.0 Interpreter when EVM bytecode is detected.
-
 ### Test net differences from main net
 
 Supports executing EVM 1.0 (Byzantium) **and** eWASM bytecode. The chain id is set to 0x42 (66).
@@ -16,6 +7,51 @@ Supports executing EVM 1.0 (Byzantium) **and** eWASM bytecode. The chain id is s
 There are two differences:
 - code size limit introduced by Spurious Dragon has been lifted and there is no upper limit
 - zero bytes in contract bytecode are not subsidised anymore during deployment (they cost the same as non-zero bytes)
+
+
+### Docker
+
+To get up and running quickly using Docker, simply `docker build -t ethereum/ewasm-testnet .`.
+
+The `docker run` command should be parameterized (i.e., using the `-e` flag to set environment variables in the running container). The following parameters are currently exposed:
+
+| Environment Variable      | Description                                               | Default                                                                                   |
+|---                        |---                                                        |---                                                                                        |
+| `BASE_PATH`               | prefix where blockchain lives on disk                     | the directory containing the running instance of `cpp-eth.sh`
+| `CHAIN`                   | name of the chain; useful when this matches a ref in git  | master
+| `CHAIN_SPEC`              | path to the chain spec JSON                               | `${BASE_PATH}/ewasm-spec.json`
+| `CHAIN_SPEC_URL`          | arbitrary URL from which the chain spec JSON will be read | https://raw.githubusercontent.com/ewasm/testnet/${CHAIN}/ewasm-testnet-cpp-config.json
+| `PEER_SET`                | list of enodes for p2p discovery                          | the contents of `./enodes.txt`, if it exists
+| `DB_PATH`                 | path to the chain-specific database                       | `${BASE_PATH}/${CHAIN}`
+| `EVMC_FALLBACK`           | EVM-C `fallback` option                                   | true
+| `ASK`                     | tx ask price, in wei                                      | 0
+| `BID`                     | tx bid price, in wei                                      | 20000000000
+| `COINBASE`                | address to which block rewards will be sent               | 0x0000000000000000000000000000000000000000
+| `IPC_PATH`                | path to the domain socket                                 | `${BASE_PATH}/geth.ipc`
+| `JSON_RPC_PORT`           | port on which the JSON-RPC proxy will listen              | 8545
+| `JSON_RPC_PROXY_PY`       | path to the JSON-RPC proxy python file                    | /usr/local/bin/jsonrpcproxy.py
+| `JSON_RPC_PROXY_URL`      | endpoint where the JSON-RPC proxy will be listening       | http://0.0.0.0:8545
+| `LISTEN_IP`               | local ip on which node accepts inbound p2p connections    | 0.0.0.0
+| `LISTEN_PORT`             | local port where node accepts inbound p2p connections     | 30303
+| `LOG_VERBOSITY`           | log level                                                 | 2
+| `LOG_PATH`                | path to logfile                                           | `${BASE_PATH}/cpp-ethereum.log`
+| `MINING`                  | whether or not the node is mining                         | on
+| `MINING_THREADS`          | number of threads to allocate to mining                   | 1
+| `NETWORK_ID`              | network id                                                | 66
+| `MODE`                    | full or peer                                              | full
+| `PORT`                    | remote p2p port                                           | 30303
+| `PUBLIC_IP`               | IP address to advertise for disco                         | public IP address resolved using ipify.org
+| `VM`                      | path to the VM lib                                        | /usr/local/lib/libhera.so
+
+
+### cpp-ethereum
+
+To build cpp-ethereum with the recent eWASM changes use [ewasm](https://github.com/ethereum/cpp-ethereum/tree/ewasm).
+
+The `eth`, `ethvm` and `testeth` contain options to run them with [Hera eWASM VM](https://github.com/ewasm/hera):
+
+- `--vm hera` enables Hera only,
+- `--evmc fallback=true` enables fallback to EVM 1.0 Interpreter when EVM bytecode is detected.
 
 ### Run eth node
 
