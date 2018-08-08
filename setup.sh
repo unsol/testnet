@@ -12,7 +12,7 @@ if [[ -z "${CPP_ETHEREUM_PREFIX}" ]]; then
 fi
 
 if [[ -z "${CPP_ETHEREUM_RELEASE_TGZ_URL}" ]]; then
-  CPP_ETHEREUM_RELEASE_TGZ_URL=$(curl -L https://api.github.com/repos/ethereum/cpp-ethereum/releases | jq 'first.assets|first.browser_download_url' | tr -d '"')
+  CPP_ETHEREUM_RELEASE_TGZ_URL=$(curl -L https://api.github.com/repos/ethereum/cpp-ethereum/releases | jq 'first.assets[1].browser_download_url' | tr -d '"')
 fi
 
 if [[ -z "${CPP_ETHEREUM_JSON_RPC_PROXY_PY_URL}" ]]; then
