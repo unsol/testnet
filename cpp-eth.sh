@@ -132,7 +132,7 @@ $CPP_ETH_BIN --address ${COINBASE} \
              ${PEER_SET:+ --peerset "${PEER_SET}"} \
              --port ${PORT} \
              --public-ip ${PUBLIC_IP} \
-             --vm ${VM} &
+             --vm ${VM} > ${LOG_PATH} 2>&1 &
 
 while [[ -z "${nodeInfo}" ]]; do
   resp=$(echo '{"jsonrpc": "2.0", "method": "admin_nodeInfo", "params": [], "id": null}' | nc -U "${IPC_PATH}" 2> /dev/null)
