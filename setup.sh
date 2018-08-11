@@ -16,7 +16,7 @@ if [[ -z "${CPP_ETHEREUM_RELEASE_TGZ_URL}" ]]; then
 fi
 
 if [[ -z "${CPP_ETHEREUM_JSON_RPC_PROXY_PY_URL}" ]]; then
-  CPP_ETHEREUM_JSON_RPC_PROXY_PY_URL=https://raw.githubusercontent.com/ethereum/cpp-ethereum/develop/scripts/jsonrpcproxy.py
+  CPP_ETHEREUM_JSON_RPC_PROXY_PY_URL=https://raw.githubusercontent.com/ethereum/cpp-ethereum/master/scripts/jsonrpcproxy.py
 fi
 
 if [[ -z "${HERA_EVMC_REF}" ]]; then
