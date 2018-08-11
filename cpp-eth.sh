@@ -21,15 +21,6 @@ if [[ -z "${CHAIN_SPEC}" ]]; then
   fi
 fi
 
-if [[ -z "${PEER_SET}" ]]; then
-  if [ ! -f enodes.txt ] || [ ! -s enodes.txt ]; then
-    if [[ ! -z "${BOOTNODES_URL}" ]]; then
-      curl "${BOOTNODES_URL}" > enodes.txt 2> /dev/null
-      PEER_SET=$(cat enodes.txt | sed 's/,/ /g')
-    fi
-  fi
-fi
-
 if [[ -z "${DB_PATH}" ]]; then
   DB_PATH=${BASE_PATH}/${CHAIN}
 fi
@@ -129,9 +120,10 @@ $CPP_ETH_BIN --address ${COINBASE} \
              --mode ${MODE} \
              --network-id ${NETWORK_ID} \
              --no-bootstrap \
-             ${PEER_SET:+ --peerset "${PEER_SET}"} \
+             --no-discovery \
+             --pin \
+             --peerset "${PEER_SET}" \
              --port ${PORT} \
-             --public-ip ${PUBLIC_IP} \
              --vm ${VM} > ${LOG_PATH} 2>&1 &
 
 while [[ -z "${nodeInfo}" ]]; do
