@@ -31,4 +31,4 @@ for arg in args.precompiles:
     print(e)
     sys.exit(1)
 
-print genesis
+print(genesis)
