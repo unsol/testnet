@@ -71,12 +71,16 @@ This section describes how to run geth node with ewasm backend.
 The key component to add ewasm to geth is [EVMC](https://github.com/ethereum/evmc).
 Hera supports EVMC out of the box, but geth not yet.
 
-1. Build geth with EVMC
+1. Create a genesis configuration
+
+  Use the example template `geth-genesis.json` or generate a new configuration using Geth's `puppeth`.  To preload accounts with code, use `genesis.py`.  See `python genesis.py -h` for details.
+
+2. Build geth with EVMC
 
 	Checkout `evmc` branch of go-ethereum fork https://github.com/chfast/go-ethereum/tree/evmc ([PR](https://github.com/ethereum/go-ethereum/pull/17050)).
 	Build geth following official [build instructions](https://github.com/ethereum/go-ethereum#building-the-source).
 
-2. Build Hera to shared library
+3. Build Hera to shared library
 
 	```sh
 	mkdir build && cd build
@@ -84,7 +88,7 @@ Hera supports EVMC out of the box, but geth not yet.
 	cmake --build .
 	```
 
-3. Run geth with Hera
+4. Run geth with Hera
 
 	geth will check the `EVMC_PATH` environment variable for path to EVMC VM shared library. Point it to Hera shared library.
 
