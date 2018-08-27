@@ -1,34 +1,33 @@
 import argparse, json, sys, binascii
 
 parser = argparse.ArgumentParser(description='Preload a Geth genesis with contract accounts')
-parser.add_argument('precompiles', type=str, nargs='+',
-                            help='one or more json objects of the form {address: "" , codefile: "/path/to/file/containing/accountcode", code: "accountcode", balance: ""}')
-parser.add_argument('--genesis', metavar='g', type=str, nargs='?',
-                            help='a string of the form address,codefile')
+parser.add_argument('--genesis', type=str, nargs='?',
+                            help='path to the genesis source template')
+parser.add_argument('--preload', type=str, nargs='?',
+                            help='a json object of the form \'{ address1:  { codefile: "/path/to/file/containing/accountcode", code: "accountcode", balance: ""}, ... }\'.  \'code\' and \'codefile\ are mutually exclusive')
 
-genesis = None
+parse_args = parser.parse_args()
 
-args = parser.parse_args()
+genesis = parse_args.genesis
+preload = parse_args.preload
 
 try:
-  with open('genesis.json') as f:
+  with open(genesis) as f:
     genesis = json.load(f)
 except Exception as e:
   print(e)
   sys.exit(1)
 
-for arg in args.precompiles:
-  acct = json.loads(arg)
-
-  if not 'address' in acct:
-    raise Exception("account must have an address")
+preload = json.loads(preload)
+for address in preload.keys():
+  acct = preload[address]
 
   if not 'balance' in acct:
     acct['balance'] = 0
 
   if 'codefile' in acct:
     try:
-      with open(codefile, 'rb') as f:
+      with open(acct['codefile'], 'rb') as f:
         acct['code'] = binascii.hexlify(f.read())
     except Exception as e:
       print(e)
@@ -36,8 +35,8 @@ for arg in args.precompiles:
   elif not 'code' in acct:
     acct['code'] = ''
     
-  genesis['alloc'][acct['address']] = json.dumps({
-    'code': acct['code'],
+  genesis['alloc'][address] = json.dumps({
+    'code': '0x'+acct['code'],
     'balance': acct['balance']
   })
 
