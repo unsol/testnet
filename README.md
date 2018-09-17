@@ -36,16 +36,17 @@ The shared library file is located under the `src` directory.
 2) Run aleth:
 ```sh
 aleth \
---vm /path/to/libhera.so \
---evmc fallback=true \
--d /tmp/ewasm-node/4201 \
---listen 4201 \
---no-bootstrap \
--m on \
--t 1 \
--a 0x031159dF845ADe415202e6DA299223cb640B9DB0 \
---config ewasm-testnet-cpp-config.json \
---peerset "required:61e5475e6870260af84bcf61c02b2127a5c84560401452ae9c99b9ff4f0f343d65c9e26209ec32d42028b365addba27824669eb70c73f69568964f77433afbbe@127.0.0.1:1234"
+  --vm hera/src/libhera.so \
+  --evmc fallback=true \
+  -d /tmp/ewasm-node/4201 \
+  --listen 4201 \
+  --no-bootstrap \
+  -m on \
+  -t 1 \
+  -a 0x031159dF845ADe415202e6DA299223cb640B9DB0 \
+  --config testnet/ewasm-testnet-cpp-config.json \
+  --peerset "required:456da6c095b36754f992731a9e3302cafbb6bfd54efd437e226a70d82c36a31eadcae38b32e7768d7e365318a533be3e868945afda328474d005337820cda269@51.144.84.135:30303" \
+  --log-verbosity 12
 ```
 
 ### JSON-RPC over HTTP
